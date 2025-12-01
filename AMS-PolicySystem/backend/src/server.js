@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./swagger');
 require('dotenv').config();
 
 const { initializeDatastore } = require('./datastore');
@@ -34,13 +36,20 @@ console.log('🚀 Starting Policy Management System...');
 console.log('💾 Using IN-MEMORY datastore (data resets on restart)');
 initializeDatastore();
 
+// Swagger API Documentation (no auth required)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+  customSiteTitle: 'AMS Policy System API',
+  customCss: '.swagger-ui .topbar { display: none }',
+}));
+
 // Health check endpoint (no auth required)
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     datastore: 'in-memory',
-    message: 'Data resets on server restart'
+    message: 'Data resets on server restart',
+    docs: '/api-docs'
   });
 });
 

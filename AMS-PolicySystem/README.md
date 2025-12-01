@@ -69,7 +69,17 @@ After starting the servers:
 
 ---
 
-## 📡 API Endpoints
+## 📡 API Documentation
+
+### 🎯 Interactive API Docs (Swagger UI)
+
+**Open Swagger UI:** 
+- **Local:** http://localhost:3001/api-docs
+- **Heroku:** https://ams-policy-system-eacbed23e276.herokuapp.com/api-docs
+
+Try out all API endpoints directly in your browser with the interactive Swagger interface!
+
+### API Endpoints Summary
 
 All endpoints require `Authorization: Bearer <token>` except `/auth/login`
 

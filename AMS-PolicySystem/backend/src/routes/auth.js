@@ -2,7 +2,33 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-// POST /api/v1/auth/login
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login to get JWT token
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
