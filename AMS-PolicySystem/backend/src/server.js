@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const { initializeDatastore } = require('./datastore');
@@ -15,6 +16,7 @@ const claimRoutes = require('./routes/claims');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const FRONTEND_PATH = path.join(__dirname, '../../frontend/dist');
 
 // Middleware
 app.use(cors());
@@ -51,10 +53,20 @@ app.use('/api/v1/policies', authenticateToken, policyRoutes);
 app.use('/api/v1/policies/:policyId/drivers', authenticateToken, driverRoutes);
 app.use('/api/v1/claims', authenticateToken, claimRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(FRONTEND_PATH));
+  
+  // Handle React routing - return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(FRONTEND_PATH, 'index.html'));
+  });
+} else {
+  // 404 handler for development
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+  });
+}
 
 // Error handler (must be last)
 app.use(errorHandler);

@@ -1,0 +1,8 @@
+{
+  "name": "cms-demo-api-implementation",
+  "minMuleVersion": "4.9.10",
+  "javaSpecificationVersions": [
+    "17"
+  ]
+}
+
