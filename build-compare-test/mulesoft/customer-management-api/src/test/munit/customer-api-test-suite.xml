@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+  xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+  xmlns:http="http://www.mulesoft.org/schema/mule/http"
+  xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+    http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+    http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+    http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+    http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+  <munit:config name="customer-api-test-suite.xml" />
+  
+  <http:request-config name="HTTP_Request_configuration" basePath="/" host="localhost" port="8081"/>
+
+  <!-- Test: GET /customers returns empty array initially -->
+  <munit:test name="test-get-all-customers-empty" description="GET /customers should return empty array initially">
+    <munit:execution>
+      <http:request method="GET" path="/customers" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {}]]]></http:headers>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[payload]" is="#[MunitTools::equalTo('[]')]"/>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+    </munit:validation>
+  </munit:test>
+
+  <!-- Test: POST /customers creates customer -->
+  <munit:test name="test-create-customer" description="POST /customers should create a new customer">
+    <munit:execution>
+      <http:request method="POST" path="/customers" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {'Content-Type': 'application/json'}]]]></http:headers>
+        <http:body><![CDATA[{
+          "firstName": "John",
+          "lastName": "Doe",
+          "email": "john.doe@example.com",
+          "phone": "+1234567890",
+          "accountStatus": "ACTIVE"
+        }]]></http:body>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(201)]"/>
+      <munit-tools:assert-that expression="#[payload.firstName]" is="#[MunitTools::equalTo('John')]"/>
+      <munit-tools:assert-that expression="#[payload.email]" is="#[MunitTools::equalTo('john.doe@example.com')]"/>
+      <munit-tools:assert-that expression="#[payload.id != null]" is="#[MunitTools::equalTo(true)]"/>
+    </munit:validation>
+  </munit:test>
+
+  <!-- Test: GET /customers/{id} returns created customer -->
+  <munit:test name="test-get-customer-by-id" description="GET /customers/{id} should return created customer">
+    <munit:execution>
+      <set-variable variableName="customerId" value="#['550e8400-e29b-41d4-a716-446655440000']"/>
+      <http:request method="GET" path="#['/customers/' ++ vars.customerId]" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {}]]]></http:headers>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+    </munit:validation>
+  </munit:test>
+
+  <!-- Test: Validation - missing firstName -->
+  <munit:test name="test-validation-missing-firstname" description="POST /customers should reject missing firstName">
+    <munit:execution>
+      <http:request method="POST" path="/customers" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {'Content-Type': 'application/json'}]]]></http:headers>
+        <http:body><![CDATA[{
+          "lastName": "Doe",
+          "email": "john.doe@example.com"
+        }]]></http:body>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]"/>
+    </munit:validation>
+  </munit:test>
+
+  <!-- Test: Validation - invalid email -->
+  <munit:test name="test-validation-invalid-email" description="POST /customers should reject invalid email format">
+    <munit:execution>
+      <http:request method="POST" path="/customers" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {'Content-Type': 'application/json'}]]]></http:headers>
+        <http:body><![CDATA[{
+          "firstName": "John",
+          "lastName": "Doe",
+          "email": "invalid-email"
+        }]]></http:body>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]"/>
+    </munit:validation>
+  </munit:test>
+
+  <!-- Test: Health endpoint -->
+  <munit:test name="test-health-endpoint" description="GET /health should return UP status">
+    <munit:execution>
+      <http:request method="GET" path="/health" config-ref="HTTP_Request_configuration">
+        <http:headers><![CDATA[#[output application/java --- {}]]]></http:headers>
+      </http:request>
+    </munit:execution>
+    <munit:validation>
+      <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]"/>
+      <munit-tools:assert-that expression="#[payload.status]" is="#[MunitTools::equalTo('UP')]"/>
+    </munit:validation>
+  </munit:test>
+
+</mule>
+

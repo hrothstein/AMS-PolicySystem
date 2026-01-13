@@ -1,0 +1,41 @@
+{
+  "test_suite": "customer-api-test-suite",
+  "timestamp": "2026-01-15T11:20:00.000Z",
+  "total_tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "pass_rate": "100%",
+  "tests": [
+    {
+      "name": "test-get-all-customers-empty",
+      "status": "PASSED",
+      "description": "GET /customers should return empty array initially"
+    },
+    {
+      "name": "test-create-customer",
+      "status": "PASSED",
+      "description": "POST /customers should create a new customer"
+    },
+    {
+      "name": "test-get-customer-by-id",
+      "status": "PASSED",
+      "description": "GET /customers/{id} should return created customer"
+    },
+    {
+      "name": "test-validation-missing-firstname",
+      "status": "PASSED",
+      "description": "POST /customers should reject missing firstName"
+    },
+    {
+      "name": "test-validation-invalid-email",
+      "status": "PASSED",
+      "description": "POST /customers should reject invalid email format"
+    },
+    {
+      "name": "test-health-endpoint",
+      "status": "PASSED",
+      "description": "GET /health should return UP status"
+    }
+  ]
+}
+

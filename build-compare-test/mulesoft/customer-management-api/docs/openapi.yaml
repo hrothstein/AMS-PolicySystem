@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Customer Management API
+  description: RESTful API for managing customer information with CRUD operations
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8081
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /customers:
+    get:
+      summary: Retrieve all customers
+      description: Returns a list of all customers in the system
+      operationId: getCustomers
+      tags:
+        - Customers
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+              example:
+                - id: "550e8400-e29b-41d4-a716-446655440000"
+                  firstName: "John"
+                  lastName: "Doe"
+                  email: "john.doe@example.com"
+                  phone: "+1234567890"
+                  accountStatus: "ACTIVE"
+                  createdAt: "2026-01-15T10:30:00.000Z"
+                  updatedAt: "2026-01-15T10:30:00.000Z"
+    
+    post:
+      summary: Create a new customer
+      description: Creates a new customer with auto-generated UUID and timestamps
+      operationId: createCustomer
+      tags:
+        - Customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+            examples:
+              basic:
+                value:
+                  firstName: "Jane"
+                  lastName: "Smith"
+                  email: "jane.smith@example.com"
+                  phone: "+1987654321"
+                  accountStatus: "ACTIVE"
+      responses:
+        '201':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "firstName is required"
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers/{id}:
+    get:
+      summary: Retrieve a customer by ID
+      description: Returns a single customer by their UUID
+      operationId: getCustomerById
+      tags:
+        - Customers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer UUID
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Customer with ID 550e8400-e29b-41d4-a716-446655440000 not found"
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      summary: Update an existing customer
+      description: Updates an existing customer by ID. Only provided fields will be updated.
+      operationId: updateCustomer
+      tags:
+        - Customers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer UUID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+            examples:
+              partial:
+                value:
+                  firstName: "Jane"
+                  accountStatus: "INACTIVE"
+      responses:
+        '200':
+          description: Customer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      summary: Delete a customer
+      description: Deletes a customer by their UUID
+      operationId: deleteCustomer
+      tags:
+        - Customers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Customer UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Customer deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Customer deleted successfully"
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "UP"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-01-15T10:30:00.000Z"
+
+components:
+  schemas:
+    Customer:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - accountStatus
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Auto-generated UUID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Customer's first name
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Customer's last name
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          description: Customer's email address (must be unique)
+          example: "john.doe@example.com"
+        phone:
+          type: string
+          pattern: '^\+[1-9]\d{1,14}$'
+          description: Customer's phone number in E.164 format (optional)
+          example: "+1234567890"
+          nullable: true
+        accountStatus:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - SUSPENDED
+          description: Account status
+          example: "ACTIVE"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when customer was created
+          example: "2026-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when customer was last updated
+          example: "2026-01-15T10:30:00.000Z"
+    
+    CustomerInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Customer's first name
+          example: "Jane"
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Customer's last name
+          example: "Smith"
+        email:
+          type: string
+          format: email
+          description: Customer's email address (must be unique)
+          example: "jane.smith@example.com"
+        phone:
+          type: string
+          pattern: '^\+[1-9]\d{1,14}$'
+          description: Customer's phone number in E.164 format (optional)
+          example: "+1987654321"
+          nullable: true
+        accountStatus:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - SUSPENDED
+          description: Account status (defaults to ACTIVE if not provided)
+          example: "ACTIVE"
+    
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "Bad Request"
+        message:
+          type: string
+          description: Error message
+          example: "firstName is required"
+
+tags:
+  - name: Customers
+    description: Customer management operations
+  - name: Health
+    description: Health check operations
+
